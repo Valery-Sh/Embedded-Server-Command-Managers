@@ -7,7 +7,7 @@
     <packaging>jar</packaging>
     <name>Tomcat Embedded Command Manager</name>
     <description>A application used as a bridge between NetBeans IDE and Jetty .</description>
-    <url>https://github.com/Valery-Sh/jetty-embedded-command-manager</url>    
+    <url>https://github.com/Valery-Sh/Embedded-Server-Command-Managers.git</url>    
     <licenses>
         <license>
             <name>The Apache License, Version 2.0</name>
@@ -19,7 +19,7 @@
             <name>Valery Shyshkin</name>
             <email>vns.shyshkin@gmail.com</email>
             <organization>IgroService</organization>
-            <organizationUrl>https://github.com/Valery-Sh/jetty-embedded-command-manager</organizationUrl>
+            <organizationUrl>https://github.com/Valery-Sh/Embedded-Server-Command-Managers</organizationUrl>
         </developer>
     </developers>    
     <properties>
@@ -148,9 +148,9 @@
         </plugins>
     </build>    
     <scm>
-        <connection>scm:git:git://github.com/Valery-Sh/jetty-embedded-command-manager.git</connection>
-        <developerConnection>scm:git:git@github.com:Valery-Sh/jetty-embedded-command-manager.git</developerConnection>
-        <url>https://github.com/Valery-Sh/jetty-embedded-command-manager.git</url>
+        <connection>scm:git:git://github.com/Valery-Sh/Embedded-Server-Command-Managers.git</connection>
+        <developerConnection>scm:git:git@github.com:Valery-Sh/Embedded-Server-Command-Managers.git</developerConnection>
+        <url>https://github.com/Valery-Sh/Embedded-Server-Command-Managers.git</url>
     </scm>        
     
 
