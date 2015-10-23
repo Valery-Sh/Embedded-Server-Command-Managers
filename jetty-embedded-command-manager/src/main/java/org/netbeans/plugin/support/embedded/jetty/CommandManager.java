@@ -43,7 +43,7 @@ import static org.netbeans.plugin.support.embedded.jetty.Utils.INSTANCE_PROPERTI
 import static org.netbeans.plugin.support.embedded.jetty.Utils.isBuildOfMavenProject;
 
 /**
- * DEpr
+ * Deprecated
  * @author V. Shyshkin
  */
 class CommandManager extends AbstractHandler implements LifeCycle.Listener {
