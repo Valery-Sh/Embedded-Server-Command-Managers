@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -41,7 +40,6 @@ import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 import static org.netbeans.plugin.support.embedded.jetty.Utils.INSTANCE_PROPERTIES_PATH;
-import static org.netbeans.plugin.support.embedded.jetty.Utils.DEVELOPMENT_MODE_XML_FILE;
 import static org.netbeans.plugin.support.embedded.jetty.Utils.isBuildOfMavenProject;
 
 /**
@@ -52,7 +50,7 @@ class CommandManager extends AbstractHandler implements LifeCycle.Listener {
 
     private static final Logger LOG = Logger.getLogger(Utils.class.getName());
 
-    private static String WELD_INIT_PARAMETER = "org.jboss.weld.environment.container.class";
+    private static final String WELD_INIT_PARAMETER = "org.jboss.weld.environment.container.class";
 
     private static final String[] REQUIRED_BEANS_XML_PATHS = new String[]{
         "/WEB-INF/beans.xml",
