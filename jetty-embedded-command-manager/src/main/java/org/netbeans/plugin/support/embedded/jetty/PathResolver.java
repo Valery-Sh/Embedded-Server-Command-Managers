@@ -233,7 +233,7 @@ public class PathResolver {
      * @return an array of to elements 
      */
     public static String[] rtPathFor(WebAppContext webapp) {
-        
+System.out.println("******** *********** $$$$$$$$$$$ **********");        
         String contextPath = webapp.getContextPath();
         String warPath = webapp.getWar();
         //String webappsDir = null;
@@ -242,12 +242,15 @@ public class PathResolver {
         
         
         URL url = PathResolver.class.getClassLoader().getResource(Utils.WEB_APPS_PACK);        
+System.out.println("******** URL=" + url);
+        
         Set<Info> infoSet = new HashSet<>();        
         if  ( url != null ) {
             WebAppInfo webappInfo;
             try {
                 webappInfo = new WebAppInfo(url);
-                infoSet = webappInfo.buildInfoSet(Utils.WEB_APPS_PACK);            
+                infoSet = webappInfo.buildInfoSet(Utils.WEB_APPS_PACK);  
+System.out.println("******** size()=" + infoSet.size());
             } catch (IOException ex) {
                 Logger.getLogger(PathResolver.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -257,6 +260,7 @@ public class PathResolver {
         }
         boolean found = false;
         for ( Info info : infoSet) {
+System.out.println("******** info.getWebAppName()=" + info.getWebAppName() +"; webapp.getWar()=" + webapp.getWar());            
             if ( info.getWebAppName().equals(webapp.getWar())) {
                 contextPath = info.getContextPath();
                 warPath = info.getWarPath();

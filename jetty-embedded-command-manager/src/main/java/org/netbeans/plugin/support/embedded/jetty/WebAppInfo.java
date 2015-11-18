@@ -46,6 +46,7 @@ public class WebAppInfo {
         connection = (JarURLConnection) resourceURL.openConnection();
         URL url = connection.getJarFileURL();
         file = new File(url.getFile());
+        System.out.println("WebAppInfo CONSTR file = " + file.getPath());
     }
 
     public WebAppInfo(File dirOrJar) {
@@ -70,11 +71,13 @@ public class WebAppInfo {
         Set<Info> set = new HashSet<>();
 
         if (!file.exists()) {
+            System.out.println("buildInfoSet ****** NOT EXISTS");
             return set;
         }
 
         if (isJarFile()) {
             URI uri = URI.create("jar:file:" + file.toPath().toUri().getPath());
+            System.out.println("buildInfoSet ****** uri=" + uri);
             return buildInfoSet(uri, forPath);
         }
 
@@ -94,8 +97,12 @@ public class WebAppInfo {
         env.put("create", "false");
 
         try (FileSystem fs = FileSystems.newFileSystem(uri, env)) {
+            System.out.println("--------------- 1");
             set = buildInfoSet(fs, forPath);
+            System.out.println("--------------- 2 set.size=" + set.size());
+            System.out.println("--------------- 3 forPath=" + forPath);
         } catch (IOException ex) {
+            System.out.println("--------------- 4 XCEPTION=" + ex.getMessage());
             Logger.getLogger(WebAppInfo.class.getName()).log(Level.SEVERE, null, ex);
         }
         return set;
@@ -105,22 +112,27 @@ public class WebAppInfo {
     protected Set<Info> buildInfoSet(FileSystem fs, String forPath) throws IOException {
         Set<Info> set = new HashSet<>();
         Path dirPath = fs.getPath(forPath);
-
+        System.out.println("======== buildInfoSet(FileSystem fs, String forPath) dirPath=" + dirPath);
         if (!Files.exists(dirPath)) {
+            System.out.println("======== !Files.exists(dirPath");
             return set;
         }
         DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath);
         Info info;// = null;
         String webAppName;// = null;
         for (Path path : stream) {
-
+            System.out.println("++++++++++ path=" + path);
             String contextPath = null;
             info = getInfo(path);
             if (info != null) {
+
                 webAppName = info.getWebAppName();
+                System.out.println("++++++++++ info!= null =" + webAppName);
                 if (info.isWarFile()) {
+                    System.out.println("++++++++++ info.isWarFile() ");
+
                     Path warPath = fs.getPath(path.toString());
-                    File warFile = warPath.toFile();                    
+                    File warFile = warPath.toFile();
                     contextPath = getContextPath(warFile, webAppName);
                 }
 
@@ -144,7 +156,10 @@ public class WebAppInfo {
     protected Info getInfo(Path path) throws IOException {
         String webAppName = path.getFileName().toString().replace("/", "");
         Info info = null;
-
+        System.out.println("NNNNNNNNNNNNNNNNNN WENAPPNAME = " + webAppName);
+        System.out.println("NNNNNNNNNNNNNNNNNN Files.isDirectory(path) = "
+                + Files.isDirectory(path)
+                + "; isJarFile()" + isJarFile());
         if (!Files.isDirectory(path) && webAppName.endsWith(".war")
                 && isJarFile()) {
             info = getInfoByWarInZip(path);
@@ -183,7 +198,7 @@ public class WebAppInfo {
 
     protected String getContextPath(File warFile, String webappName) {
         String cp = "/" + webappName;// = null;
-    
+
         String jettyweb = Copier.ZipUtil.getZipEntryAsString(warFile, "WEB-INF/jetty-web.xml");
         if (jettyweb == null) {
             jettyweb = Copier.ZipUtil.getZipEntryAsString(warFile, "WEB-INF/web-jetty.xml");
@@ -205,8 +220,8 @@ public class WebAppInfo {
                 }
             }
         }
-        if ( props.getProperty(Utils.CONTEXTPATH_PROP) != null  ) {
-           cp = props.getProperty(Utils.CONTEXTPATH_PROP);
+        if (props.getProperty(Utils.CONTEXTPATH_PROP) != null) {
+            cp = props.getProperty(Utils.CONTEXTPATH_PROP);
         }
         return cp;
     }

@@ -28,18 +28,18 @@
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
     <dependencies>
-        <!--dependency>
+        <dependency>
             <groupId>eu.somatik.serviceloader-maven-plugin</groupId>
             <artifactId>serviceloader-maven-plugin</artifactId>
             <version>1.0.4</version>
-        </dependency-->
+        </dependency>
         
         <dependency>
             <groupId>org.eclipse.jetty.aggregate</groupId>
             <artifactId>jetty-all</artifactId>
             <version>9.3.2.v20150730</version>
-            <classifier>uber</classifier>
-            <type>jar</type>
+            <!--classifier>uber</classifier-->
+            <type>pom</type>
             <scope>provided</scope>
         </dependency>
         
@@ -145,7 +145,7 @@
                 </executions>
             </plugin>      
             
-            <!--plugin>
+            <plugin>
                 <groupId>eu.somatik.serviceloader-maven-plugin</groupId>
                 <artifactId>serviceloader-maven-plugin</artifactId>
                 <version>1.0.2</version>
@@ -161,7 +161,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin-->
+            </plugin>
             
             
         </plugins>

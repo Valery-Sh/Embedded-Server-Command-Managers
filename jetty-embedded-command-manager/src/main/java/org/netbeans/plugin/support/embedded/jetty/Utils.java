@@ -69,8 +69,8 @@ public class Utils {
 
     public static final String CONTEXTPATH_PROP = "contextPath";
     public static final String WEBAPP_CONFIG_FILE = "jetty-web.xml";
-    public static final String WEB_APPS_PACK = "web-apps-pack";
-
+    //public static final String WEB_APPS_PACK = "web-apps-pack";
+    public static final String WEB_APPS_PACK = "resources";
     public static final String INSTANCE_PROPERTIES_FILE = "server-instance.properties";
 
     public static final String ANTI_LOCK_PROP_NAME = "antiResourceLocking";

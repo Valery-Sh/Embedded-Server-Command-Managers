@@ -91,7 +91,7 @@ class CommandManager extends AbstractHandler implements LifeCycle.Listener {
 
     private boolean verbose;
 
-    private ServerConfig serverConfig;
+    //private ServerConfig serverConfig;
 
     protected CommandManager() {
         super();
@@ -121,6 +121,7 @@ class CommandManager extends AbstractHandler implements LifeCycle.Listener {
     }
 
     protected void config() {
+/*        
         serverInstanceProperties = loadServerProperties();
         serverConfig = new ServerConfig(serverInstanceProperties);
         if (userDefinedServer == null && serverConfig.isEnabled("deploy")) {
@@ -132,19 +133,18 @@ class CommandManager extends AbstractHandler implements LifeCycle.Listener {
             managerServer = userDefinedServer;
         }
         configModules();
+*/        
     }
 
     protected void configModules() {
+        /*
         if (serverConfig.isEnabled("annotations")) {
-            new ModuleActivator.Annotations().configServer(managerServer);
+            //new ModuleActivator.Annotations().configServer(managerServer);
         }
         if (serverConfig.isEnabled("jsf")) {
-            new ModuleActivator.JSF().configServer(managerServer);
+            //new ModuleActivator.JSF().configServer(managerServer);
         }
-/*        if (userDefinedServer == null && serverConfig.isEnabled("cdi")) {
-            new ModuleActivator.WeldCDI().configServer(managerServer);
-        }
-*/        
+*/
     }
 
     public static Server createServer() {
@@ -226,14 +226,7 @@ class CommandManager extends AbstractHandler implements LifeCycle.Listener {
         }
     }
 
-    public ServerConfig getServerConfig() {
-        return serverConfig;
-    }
 
-    public static boolean isJSFEnabled() {
-
-        return getInstance().getServerConfig().isJSFEnabled();
-    }
 
     public static boolean isCDIEnabled(ContextHandler ctx) {
         //getInstance().out(" CommandManager.isCDIEnabled) cp=" + ctx.getContextPath() + "; init=param=" + ctx.getInitParameter(WELD_INIT_PARAMETER));
@@ -294,13 +287,13 @@ class CommandManager extends AbstractHandler implements LifeCycle.Listener {
      *
      * @return null if the method {@link createHotDeploymentServer}
      */
-    public static HotDeployer getHotDeployer() {
+/*    public static HotDeployer getHotDeployer() {
         CommandManager cm = CommandManager.getInstance();
         assert cm != null;
         return HotDeployer.create();
 
     }
-
+*/
     /*protected Server getServer() {
      return server;
      }
@@ -425,7 +418,7 @@ class CommandManager extends AbstractHandler implements LifeCycle.Listener {
             hc.addHandler(chc);
             addShutdownHandler(server, hc);
         }
-        HotDeployer hd = HotDeployer.getInstance();
+/*        HotDeployer hd = HotDeployer.getInstance();
         if (hd != null) {
             Handler[] all = server.getChildHandlersByClass(ContextHandlerCollection.class);
             ContextHandlerCollection contexts = hd.getContextHandlers();
@@ -440,6 +433,7 @@ class CommandManager extends AbstractHandler implements LifeCycle.Listener {
                 ((HandlerCollection) server.getHandler()).addHandler(contexts);
             }
         }
+*/        
         //
         // Place all handlers of type DefaultHandler  at the end of HandlerCollection.
         // Otherwise some handlers (ShutdownHandker for example) may become unreachable.
