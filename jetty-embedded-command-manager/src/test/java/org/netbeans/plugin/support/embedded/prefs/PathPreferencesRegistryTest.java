@@ -285,48 +285,4 @@ public class PathPreferencesRegistryTest {
         PreferencesProperties result = instance.getProperties(dirnamespace01.toString(), id);
         assertNotNull(result);
     }
-
-    /**
-     * Test of filter method, of class PathPreferencesRegistry.
-     */
-
-    /**
-     * Test of getEntries method, of class PathPreferencesRegistry.
-     */
-    @Ignore
-    @Test
-    public void testGetEntries_List() throws Exception {
-        System.out.println("getEntries");
-        List<String> legalEntries = null;
-        PathPreferencesRegistry instance = null;
-        instance.getEntries(legalEntries);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-    /**
-     * Test of getEntries method, of class PathPreferencesRegistry.
-     */
-    @Test
-    public void testGetEntries_Preferences_List() throws Exception {
-        System.out.println("getEntries(String, List)");
-        List<String> legalEntries = new ArrayList<>();
-        PathPreferencesRegistry instance = create();
-        instance.getEntries("", legalEntries);
-    }
-
-    /**
-     * Test of getEntries method, of class PathPreferencesRegistry.
-     */
-    @Ignore
-    @Test
-    public void testGetEntries_String_List() throws Exception {
-        System.out.println("getEntries");
-        String namespace = "";
-        List<String> legalEntries = null;
-        PathPreferencesRegistry instance = null;
-        instance.getEntries(namespace, legalEntries);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
 }

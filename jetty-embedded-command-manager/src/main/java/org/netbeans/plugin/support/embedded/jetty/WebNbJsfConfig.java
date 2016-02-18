@@ -18,11 +18,6 @@ public class WebNbJsfConfig extends AbstractConfiguration {
     final String MYFACES_LISTENER = "org.apache.myfaces.webapp.StartupServletContextListener";
     final String MOJARRA_LISTENER = "com.sun.faces.config.ConfigureListener";
 
-    /**
-     *
-     * @param context
-     * @throws java.lang.Exception
-     */
     @Override
     public void preConfigure(WebAppContext context) throws Exception {
         if (context.getTempDirectory() != null) {
@@ -67,12 +62,6 @@ System.out.println("******* WebNbJsfConfig API != NULL");
         }
 
     }
-
-    /**
-     * Process web-default.xml, web.xml, override-web.xml
-     *
-     * @param context
-     */
     @Override
     public void configure(WebAppContext context) throws Exception {
     }

@@ -15,11 +15,10 @@ public class WebNbCdiConfig extends AbstractConfiguration {
 
     /**
      *
-     * @param context
-     * @throws java.lang.Exception
+     * @param context an object of type {@literal WebAppContext }.
      */
     @Override
-    public void preConfigure(WebAppContext context) throws Exception {
+    public void preConfigure(WebAppContext context) {
         System.out.println("******* WebNbCdiConfig *****************");
         if (context.getTempDirectory() != null) {
             context.getTempDirectory().deleteOnExit();
@@ -64,12 +63,6 @@ public class WebNbCdiConfig extends AbstractConfiguration {
 
     }
 
-    /**
-     * Process web-default.xml, web.xml, override-web.xml
-     *
-     * @param context
-     * @throws java.lang.Exception
-     */
     @Override
     public void configure(WebAppContext context) throws Exception {
     }

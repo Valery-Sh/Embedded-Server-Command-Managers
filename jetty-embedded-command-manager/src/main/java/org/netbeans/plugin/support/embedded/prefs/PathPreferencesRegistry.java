@@ -1,10 +1,7 @@
 package org.netbeans.plugin.support.embedded.prefs;
 
-import org.netbeans.plugin.support.embedded.jetty.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.AbstractPreferences;
@@ -50,14 +47,15 @@ import java.util.prefs.Preferences;
  *      underline symbol. The backslash is also replaced by a forward slash. 
  *  </li>
  * </ul>
- * Me call the first part plus second part as a {@literal "registry root"}.
+ * We call the first part plus second part as a {@literal "registry root"}.
  * And "registry root" + third part - "directory node". The last part defines 
  * a root for properties whose value is used as a parameter for the method 
  * {@literal getProperties() } call. 
  * 
  * <p>
- * Here {@literal UUID_ROOT } is a string value of the static constant defined 
+ * Here {@link #UUID_ROOT } is a string value of the static constant defined 
  * in the class.
+ * <p>
  * We can create just another properties store:
  * <pre>
  *     props2 = reg.getProperties{"example-properties-2"); 
@@ -80,10 +78,9 @@ import java.util.prefs.Preferences;
  * methods:
  * 
  * <ul>
- *    <li>{@link #newInstance(java.lang.String, java.nio.file.Path)} </li>
- *    <li>{@link #newInstance(java.nio.file.Path) } </li>
+ *    <li>{@link #newInstance(java.lang.String, java.nio.file.Path) }</li>
+ *    <li>{@link #newInstance(java.nio.file.Path) }</li>
  * </ul>
- * In the example above, we have seen what happens when using the first method.
  * 
  * @author V. Shyshkin
  */
@@ -123,10 +120,6 @@ public class PathPreferencesRegistry {
         return directoryPath.toString().replace("\\", "/");
     }
 
-    /*    protected void setPreferencesPropertiesFactory(PreferencesPropertiesFactory factory) {
-        this.factory =  factory;
-    }
-     */
     /**
      * Return a string value that is used to create a root node of the registry.
      * The implementation returns {@link #UUID_ROOT} constant value and may be
@@ -140,25 +133,14 @@ public class PathPreferencesRegistry {
     }
 
     /**
-     * Returns the preference node from the calling user's preference tree that
-     * is associated with a value returned by the method
-     * {@link #registryRootNamespace }. If the class was created with a
-     * constructor      {@link #PathPreferencesRegistry(java.lang.String,java.nio.file.Path)
-     * }
-     * The returned node becomes the root node for all other operations on the
-     * nodes.
-     *
-     * This node name space consists of two or three parts:
+     * Returns the root preference node for the calling user.     
+     * Just calls:
      * <pre>
-     *    1. AbstractNode.userRoot();
-     *    2. {@link #UUID_ROOT} constant value
-     *    3  Optional. If the class was created by calling a method
-     *      {@link #newInstance(String, java.nio.file.Path)} and only when the first
-     *       parameter is not null. It is a user specifide directories
-     *       root namespace.
+     *   AbstractPreferences.userRoot();
      * </pre>
-     *
-     * @return the root node for all other operations of the nodes.
+     * @return the root preference node for the calling user.
+     * @throws java.lang.SecurityException - If a security manager is present and it denies RuntimePermission("preferences").
+     * @see java.lang.RuntimePermission
      */
     protected Preferences rootNode() {
         return AbstractPreferences.userRoot();
@@ -169,6 +151,15 @@ public class PathPreferencesRegistry {
         p = p.node(registryRootNamespace()).node(directoriesRootNamespace);
         return p;
     }
+    
+    /**
+     * Returns a preferences node that represents a directory name space. 
+     * Just returns a value:
+     * <pre>
+     *   rootRegistryNode().node(getNamespace());
+     * </pre>
+     * @return Returns a preferences node that represents a directory name space. 
+     */
     protected Preferences directoryNode() {
         return rootRegistryNode().node(getNamespace());
         
@@ -195,17 +186,37 @@ public class PathPreferencesRegistry {
             return rootNode();
         }
     }
-
-    public static PathPreferencesRegistry newInstance(Path namespace) {
-        //PathPreferencesRegistry d = new PathPreferencesRegistry(namespace);
+    /**
+     * Creates and returns a new instance of the class for a specified 
+     * name space.
+     * Delegates to the {@link #newInstance(java.lang.String, java.nio.file.Path) }
+     * passing a the value {@link #DEFAULT_DIRECTORIES_ROOT } to the parameter.
+     * @param directoryNamespace an object of type {@literal Path} whose string value 
+     *  will be a parent for properties nodes.
+     * 
+     * @return a new instance of the class
+     */
+    public static PathPreferencesRegistry newInstance(Path directoryNamespace) {
+        //PathPreferencesRegistry d = new PathPreferencesRegistry(directoryNamespace);
         //return d;
-        return newInstance(DEFAULT_DIRECTORIES_ROOT,namespace);
+        return newInstance(DEFAULT_DIRECTORIES_ROOT,directoryNamespace);
     }
-
-    public static PathPreferencesRegistry newInstance(String directoriesRootNamespace, Path namespace) {
+    /**
+     * Creates and returns a new instance of the class for a specified directory root name space and 
+     * a directory name space.
+     * 
+     * @param directoriesRootNamespace a parent name space for the directory 
+     * name space.
+     * 
+     * @param directoryNamespace an object of type {@literal Path} whose string value 
+     *  will be a parent for properties nodes.
+     * 
+     * @return a new instance of the class
+     */
+    public static PathPreferencesRegistry newInstance(String directoriesRootNamespace, Path directoryNamespace) {
         String s = directoriesRootNamespace == null || directoriesRootNamespace.trim().length() == 0
                 ? DEFAULT_DIRECTORIES_ROOT : directoriesRootNamespace;
-        return new PathPreferencesRegistry(s, namespace);
+        return new PathPreferencesRegistry(s, directoryNamespace);
     }
     /**
      * Checks whether a node specified by the parameter exists.
@@ -241,9 +252,9 @@ public class PathPreferencesRegistry {
      * 
      * @param prefs initial node to delete
      * @throws BackingStoreException Thrown to indicate that a 
-     *      preferences operation could not complete because of 
-     *      a failure in the backing store, or a failure to 
-     *      contact the backing store
+     *  preferences operation could not complete because of a 
+     *  failure in the backing store, or a failure to contact the 
+     *  backing store.
      */
     protected void removeRegistryDirectory(Preferences prefs) throws BackingStoreException {
         Preferences parent = prefs.parent();
@@ -260,15 +271,35 @@ public class PathPreferencesRegistry {
 
     /**
      * Returns a string value than represents a relative path to a node returned
-     * by a method {@link #rootNode() }.
+     * by a method {@link #rootRegistryNode() }.
+     * Delegates it's job to a method {@link #getNamespace(String) } where a 
+     * parameter value is a string representation of a parameter of type
+     * {@literal Path} for a method 
+     * {@link #newInstance(java.lang.String, java.nio.file.Path) } or 
+     * {@link #newInstance(java.nio.file.Path) }
      *
+     * 
      * @return a string value than represents a relative path to a node returned
-     * by a method {@link #rootNode() }.
+     * by a method {@link #rootRegistryNode() }.
      */
     protected String getNamespace() {
         return getNamespace(directoryNamespacePath());
     }
-
+    /**
+     * Converts the parameter value and returns a value than represents a relative path to a node returned
+     * by a method {@link #rootRegistryNode() }.
+     * 
+     * The returned value doesn't include a properties node.
+     * 
+     * All {@literal colon } symbols in the parameter's value are replaced with 
+     * an {@literal underline } and all {@literal backslash } are replaced with 
+     * {@literal forward slash}.
+     *
+     * @param forDir the parameter to convert.
+     * 
+     * @return a converted the parameter's string value that represents a relative path to a node returned
+     * by a method {@link #rootRegistryNode() }.
+     */
     protected String getNamespace(String forDir) {
         Path dirPath = Paths.get(forDir);
         Path rootPath = dirPath.getRoot();
@@ -301,24 +332,12 @@ public class PathPreferencesRegistry {
     }
 
     /**
-     * The method returns the preference for a node whose name is constructed in
-     * four or five parts:
-     *
-     * <pre>
-     * 1. AbstractPreferences.userRoot()
-     * 2. {@link #UUID_ROOT} constant value
-     * 3  Optional. If the class was created by calling a method
-     *      {@link #newInstance(String, java.nio.file.Path)} and only when the first
-     *      parameter is not null
-     * 4. An absolute path to a directory passed as a parameter
-     *      to a {@link #newInstance(Path) } method or
-     *      {@link #newInstance(String, java.nio.file.Path)} where all {@literal colon} symbols
-     *      are replaced with an {@literal  underline} and a {@literal backslash}
-     *      with a forward slash
-     * 5. {@link #DEFAULT_PROPERTIES_ID} constant value
-     * </pre>
-     *
-     * @param id the name of the last node in a preference nodes hierarchy
+     * The method returns an instance of {@link  PreferencesProperties} class.
+     * The {@literal id} is used to create a node relatively to a directory node
+     * as the method {@link #directoryNode() } specifies.
+     * @param id the value that specifies a name for a node where properties 
+     * are written and read.
+     * 
      * @return an object of type {@link PreferencesProperties}
      */
     public PreferencesProperties getProperties(String id) {
@@ -330,13 +349,14 @@ public class PathPreferencesRegistry {
      * perfectly legal to call this method multiple times with the same
      * {@literal namespace} as a parameter - it will always create new instance
      * of {@link PreferencesProperties}. Returned properties should serve for
-     * persistence of the single server instance.
+     * persistence properties storage.
      *
      * @param namespace string identifying the {@literal namespace} of created
      * {@link  PreferencesProperties}
+     * 
      * @param id the name of property file
-     * @return
-     * {@literal a new PreferencesProperties logically placed in the given namespace}
+     * @return {@literal a new PreferencesProperties logically placed 
+     * in the given namespace}
      */
     protected PreferencesProperties getProperties(String namespace, String id) {
         Preferences prefs = rootRegistryNode();
@@ -356,43 +376,4 @@ public class PathPreferencesRegistry {
         }
     }
 
-    public void getEntries(List<String> legalEntries) throws BackingStoreException {
-        //getEntries(PathPreferencesRegistry.UID, legalEntries);
-    }
-
-    public void getEntries(int level, Preferences prefs, List<String> legalEntries) throws BackingStoreException {
-
-        String[] cnames = prefs.childrenNames();
-
-        //System.out.println("*GET ENTRY. prefs.name() = " + prefs.name());
-        //System.out.println("*GET ENTRY. prefs.absolutePath() = " + prefs.absolutePath());
-        //System.out.println("*GET ENTRY. cnildren lingth = " + cnames.length);
-        String line = "*";
-        if (level > 0) {
-            char[] chars = new char[level];
-            Arrays.fill(chars, '-');
-            line = new String(chars);
-        }
-        for (String nm : cnames) {
-            System.out.println(line + " " + nm);
-            //prefs.node(nm);
-            getEntries(level + 1, prefs.node(nm), legalEntries);
-
-        }
-    }
-
-    public void getEntries(String namespace, List<String> legalEntries) throws BackingStoreException {
-        Preferences prefs = rootNode();
-        String[] cnames = prefs.childrenNames();
-        System.out.println("GET ENTRY. prefs.name() = " + prefs.name());
-        System.out.println("GET ENTRY. prefs.absolutePath() = " + prefs.absolutePath());
-        System.out.println("GET ENTRY. cnildren lingth = " + cnames.length);
-        getEntries(0, prefs, legalEntries);
-    }
-
-    protected class Node {
-
-        int level;
-        String name;
-    }
 }
