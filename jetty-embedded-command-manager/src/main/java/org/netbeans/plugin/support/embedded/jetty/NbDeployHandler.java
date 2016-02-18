@@ -26,17 +26,24 @@ import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.AbstractPreferences;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.deploy.DeploymentManager;
@@ -116,7 +123,7 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
     protected String runtimeShutdownToken;
 
     private JettyLifeCycleListener lifeCycleListener;
-    
+
     /**
      * Create a new instance of the class.
      */
@@ -135,7 +142,7 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
     }
 
     public NbDeployHandler listen(Server server) {
-        lifeCycleListener  = new JettyLifeCycleListener(this);
+        lifeCycleListener = new JettyLifeCycleListener(this);
         server.addLifeCycleListener(lifeCycleListener);
         return this;
     }
@@ -165,7 +172,6 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
         }
         return b;
     }
-
 
     public static Server getHotDeploymentServer(int httpPort) { //throws Exception {
 
@@ -199,6 +205,7 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
         webappProvider.setExtractWars(true);
         webappProvider.setConfigurationManager(new PropertiesConfigurationManager());
         deployer.addAppProvider(webappProvider);
+
         server.addBean(deployer);
 
         return server;
@@ -215,6 +222,7 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
             "org.eclipse.jetty.annotations.AnnotationConfiguration",
             "org.eclipse.jetty.webapp.JettyWebXmlConfiguration"}
         );
+
     }
 
     private void init(Server server) {
@@ -609,7 +617,7 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
             return;// webapp;
         }
 
-        System.out.println("start: success");
+        System.out.println("!!! start: success");
     }
 
     protected void stop(HttpServletRequest request) {
@@ -916,15 +924,15 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
         }
 
         webapp.setWar(path);
-        
+
         webapp.getInitParams().put("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
         if (!webapp.isCopyWebDir()) {
             webapp.setCopyWebDir(antiResource);
         }
-
+//JettyWeldInitializer jwi = new JettyWeldInitializer();
         ((ContextHandlerCollection) contextHandlers[0]).addHandler(webapp);
 
-        System.out.println("deploy: success");
+        System.out.println("!! !! !!! deploy: success !!!");
 
     }
 
@@ -1034,7 +1042,7 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
         //
         start(contextPath, webDir);
 
-        System.out.println("deploy: success");
+        System.out.println("!!! deploy: success");
 
         return webapp;
     }
@@ -1042,7 +1050,7 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
     /**
      *
      * @param programPort the port number as defined in the program
-     * @param realPort  the port number as configured in IDE
+     * @param realPort the port number as configured in IDE
      */
     protected void notifyInvalidPortNumber(int programPort, int realPort) {
         System.err.println("===================================");
@@ -1296,7 +1304,7 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
 
     }
 
-    public static void enableAnnotationsJspJNDI(Server server) {
+    protected static void configAnnotationsJspJndi(Server server) {
         org.eclipse.jetty.webapp.Configuration.ClassList classlist
                 = org.eclipse.jetty.webapp.Configuration.ClassList
                 .setServerDefault(server);
@@ -1308,7 +1316,26 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
         classlist.addBefore(
                 "org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
                 "org.eclipse.jetty.annotations.AnnotationConfiguration");
+    }
+
+    public static void enableAnnotationsJspJNDI(Server server) {
+        /*        if ( getInstance().annotationsSupported ) {
+            return;
+        }
+        configAnnotationsJspJndi(server);
+         */
+
         getInstance().setAnnotationsSupported(true);
+    }
+
+    protected static void configJSF(Server server) {
+        org.eclipse.jetty.webapp.Configuration.ClassList classlist
+                = org.eclipse.jetty.webapp.Configuration.ClassList
+                .setServerDefault(server);
+        classlist.addAfter(
+                "org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
+                WebNbJsfConfig.class.getName()
+        );
     }
 
     public static void enableJSF(Server server) {
@@ -1317,22 +1344,24 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
 
     public static void enableJSF(Server server, JsfAPI api) {
 
-        org.eclipse.jetty.webapp.Configuration.ClassList classlist
+        /*        org.eclipse.jetty.webapp.Configuration.ClassList classlist
                 = org.eclipse.jetty.webapp.Configuration.ClassList
                 .setServerDefault(server);
         classlist.addAfter(
                 "org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
                 WebNbJsfConfig.class.getName()
         );
+         */
         getInstance().setJsfAPI(api);
-        Object o = server.getAttribute("jsp.enabled");
+        /*        Object o = server.getAttribute("jsp.enabled");
         boolean b = o != null && ((Boolean)o).equals(true);
         if (!getInstance().isAnnotationsSupported() || b) {
             enableAnnotationsJspJNDI(server);
         }
+         */
     }
 
-    public static void enableCDI(Server server) {
+    protected static void configCDI(Server server) {
 
         org.eclipse.jetty.webapp.Configuration.ClassList classlist
                 = org.eclipse.jetty.webapp.Configuration.ClassList
@@ -1342,6 +1371,19 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
                 WebNbCdiConfig.class.getName()
         );
         addDeploymentManager(server);
+    }
+
+    public static void enableCDI(Server server) {
+
+        /*        org.eclipse.jetty.webapp.Configuration.ClassList classlist
+                = org.eclipse.jetty.webapp.Configuration.ClassList
+                .setServerDefault(server);
+        classlist.addAfter(
+                "org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
+                WebNbCdiConfig.class.getName()
+        );
+        addDeploymentManager(server);
+         */
         getInstance().setCdiSupported(true);
     }
 
@@ -1360,16 +1402,76 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
 
     }
 
+    protected boolean isInClassPath(String... patterns) {
+        boolean yes = false;
+        String path = System.getProperty("java.class.path");
+        String[] entries = path.split(System.getProperty("path.separator"));
+        List<String> plist = new ArrayList<>();
+
+        for (String p : patterns) {
+            plist.add(p);
+        }
+        for (String entry : entries) {
+            String nm = Paths.get(entry).getFileName().toString();
+            for (String p : patterns) {
+                if (nm.startsWith(p) && entry.endsWith(".jar")) {
+                    plist.remove(p);
+                }
+            }
+            if (plist.isEmpty()) {
+                yes = true;
+            }
+        }
+
+        return yes;
+    }
+
     public boolean isAnnotationsSupported() {
-        return annotationsSupported;
+        System.out.println("&&&&& isAnnotationsSupported &&&&&&&&&& ");
+        if (annotationsSupported) {
+            return true;
+        }
+        return isInClassPath("jetty-annotations-", "asm-", "asm-commons-", "javax.annotation-api-");
     }
 
     public boolean isJsfSupported() {
-        return getJsfAPI() != null;
+        System.out.println("&&&&& isJSFSupported &&&&&&&&&& ");
+        boolean yes = false;
+        if (getJsfAPI() != null) {
+            yes = true;
+        } else if (isInClassPath("javax.faces")) {
+            System.out.println("&&&&& isJSFSupported MOJARRA = " + true);
+            jsfAPI = JsfAPI.MOJARRA;
+            yes = true;
+        } else if (isInClassPath("myfaces-impl-", "javax.faces-", "myfaces-bundle-",
+                "myfaces-api-", "geronimo-atinject", "commons-codec-",
+                "commons-logging-", "commons-digester-", "commons-collections-",
+                "commons-beanutils-")) {
+            jsfAPI = JsfAPI.MYFACES;
+            yes = true;
+        }
+        System.out.println("&&&&& isJSFSupported = " + yes);
+        return yes;
+
     }
 
     public boolean isCDISupported() {
-        return cdiSupported;
+        if (cdiSupported) {
+            return true;
+        }
+        String path = System.getProperty("java.class.path");
+        String sep = System.getProperty("path.separator");
+        System.out.println("#### isCDISupported path = " + sep);
+        System.out.println("$$$$ isCDISupported path = " + path);
+
+        boolean yes
+                = isInClassPath("guava-", "cdi-api-",
+                        "javax.inject-", "javax.interceptor-api-", "jboss-classfilewriter-",
+                        "weld-api-", "weld-core-impl", "weld-environment-common-",
+                        "weld-servlet-core", "weld-spi-");
+        System.out.println("&&&&& isCDISupported  = " + yes);
+
+        return yes;
     }
 
     protected void setCdiSupported(boolean cdiSupported) {
@@ -1439,28 +1541,36 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
     }
 
     protected static class JettyLifeCycleListener implements LifeCycle.Listener {
-        
+
         private final NbDeployHandler deployer;
-        
+
         public JettyLifeCycleListener(NbDeployHandler deployer) {
             this.deployer = deployer;
         }
+
         /**
          *
          * @param lc actual type is {@literal Server}.
          */
         @Override
         public void lifeCycleStarting(LifeCycle lc) {
+
+            if (deployer.isAnnotationsSupported()) {
+                System.out.println("*********** lifeCycleStarting isAnnotationsSupported");
+                configAnnotationsJspJndi((Server) lc);
+            }
+
             if (deployer.isJsfSupported()) {
-                enableJSF((Server) lc);
+                configJSF((Server) lc);
             }
             if (deployer.isCDISupported()) {
-                enableCDI((Server) lc);
+                configCDI((Server) lc);
             }
 
             System.out.println("========== LIFECYCLE STARTING ========");
             deployer.init((Server) lc);
             if (isDevelopmentMode()) {
+//====================================================================                                
                 Connector[] cs = ((Server) lc).getConnectors();
                 for (Connector c : cs) {
                     if (c instanceof ServerConnector) {
@@ -1482,7 +1592,7 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
                 }
             }
             Map<WebAppContext, ContextHandlerCollection> map = deployer.findWebApps();
-        //
+            //
             // Scan all explicitly (hard coded) defined WebAppContexts 
             //
             for (WebAppContext webapp : map.keySet()) {
@@ -1503,7 +1613,7 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
                 System.out.println("   --- war = " + newPath);
                 System.out.println("==================================================================");
 
-                if (isDevelopmentMode() && new File(newPath).exists() ) {
+                if (isDevelopmentMode() && new File(newPath).exists()) {
                     deployer.configWebapp(webapp);
                 }
 
@@ -1521,12 +1631,12 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
                 deployer.findContextHandlerCollection((Server) lc).addHandler(e.getValue());
             });
 
-        //
+            //
             // We must create and add handlers for web apps that are 
             // registered as webref, warref or are internal projects.
             //
             if (!isDevelopmentMode()) {
-                if ( true ) {
+                if (true) {
                     return;
                 }
                 URL url = getClass().getClassLoader().getResource(Utils.WEB_APPS_PACK);

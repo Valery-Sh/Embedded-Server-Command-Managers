@@ -20,13 +20,36 @@ public class WebNbCdiConfig extends AbstractConfiguration {
      */
     @Override
     public void preConfigure(WebAppContext context) throws Exception {
-
+        System.out.println("******* WebNbCdiConfig *****************");
         if (context.getTempDirectory() != null) {
             context.getTempDirectory().deleteOnExit();
         }
+        String[] jerseyClasses = context.getSystemClasses();
+        boolean jerseyFound = false;
+        System.out.println("******* 1");
 
-       // Map<String, ? extends FilterRegistration> srf = (Map<String, FilterRegistration>) context.getServletContext().getFilterRegistrations();
+        for (String s : jerseyClasses) {
+            if ("org.glassfish.jersey.".equals(s)) {
+                jerseyFound = true;
+                break;
+            }
+        }
 
+        if (!jerseyFound) {
+            System.out.println("******* 2 !");
+            //
+            // webapp cannot change / replace jersey classes        
+            //
+            context.addSystemClass("org.glassfish.jersey.");
+            //
+            // don't hide jersey classes from webapps (allow webapp to use ones from system classloader)
+            //
+            context.prependServerClass("-org.glassfish.jersey.");
+
+        }
+        //      }
+
+        // Map<String, ? extends FilterRegistration> srf = (Map<String, FilterRegistration>) context.getServletContext().getFilterRegistrations();
         //
         // Here we must use isCDIEnabled() without parameter. So each webapp is processed
         //
@@ -34,11 +57,10 @@ public class WebNbCdiConfig extends AbstractConfiguration {
             if (context.getInitParameter("WELD_CONTEXT_ID_KEY") == null) {
                 if (!"/WEB_APP_FOR_CDI_WELD".equals(context.getContextPath())) {
                     UUID id = UUID.randomUUID();
-                    context.setInitParameter("WELD_CONTEXT_ID_KEY", id.toString());
+                    //context.setInitParameter("WELD_CONTEXT_ID_KEY", id.toString());
                 }
             }
         }
-
 
     }
 

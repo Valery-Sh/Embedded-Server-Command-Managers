@@ -82,6 +82,10 @@ public class DevModePathResolver {
         return props;
     }
     
+    public static Path getServerDirPath() {
+//System.out.println("USER.DIR = " + Paths.get(System.getProperty("user.dir")));
+        return Paths.get(System.getProperty("user.dir"));
+    }
     private static Path getTmpWebAppsDir() {
         Path serverDir = Paths.get(System.getProperty("user.dir"));
         String root = serverDir.getRoot().toString().replaceAll(":", "_");

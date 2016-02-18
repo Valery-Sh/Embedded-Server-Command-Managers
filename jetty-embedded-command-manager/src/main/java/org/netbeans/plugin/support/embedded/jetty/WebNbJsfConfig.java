@@ -28,13 +28,15 @@ public class WebNbJsfConfig extends AbstractConfiguration {
         if (context.getTempDirectory() != null) {
             context.getTempDirectory().deleteOnExit();
         }
-
+System.out.println("******* WebNbJsfConfig *****************");
         //
         // add config listener for an active jsf module
         //
         JsfAPI api = NbDeployHandler.getInstance().getJsfAPI();
 
         if (api != null) {
+System.out.println("******* WebNbJsfConfig API != NULL");
+            
             //
             // webapp cannot change / replace jsf classes        
             //

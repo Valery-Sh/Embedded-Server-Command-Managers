@@ -66,7 +66,19 @@
             <version>9.3.2.v20150730</version>
             <scope>provided</scope>
         </dependency-->
-        
+        <dependency>
+            <groupId>org.eclipse.jetty.cdi</groupId>
+            <artifactId>cdi-servlet</artifactId>
+            <version>9.3.7.v20160115</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     <distributionManagement>
         <snapshotRepository>

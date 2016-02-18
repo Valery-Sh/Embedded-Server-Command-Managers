@@ -230,10 +230,11 @@ public class PathResolver {
      * In production mode we must return a simple name of the war file without
      * extention.
      *
+     * @param webapp an instance of WebAppContext type
      * @return an array of to elements 
      */
     public static String[] rtPathFor(WebAppContext webapp) {
-System.out.println("******** *********** $$$$$$$$$$$ **********");        
+
         String contextPath = webapp.getContextPath();
         String warPath = webapp.getWar();
         //String webappsDir = null;
