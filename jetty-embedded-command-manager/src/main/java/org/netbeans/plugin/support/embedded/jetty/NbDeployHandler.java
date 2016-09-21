@@ -32,18 +32,14 @@ import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.UUID;
-import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.prefs.AbstractPreferences;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.deploy.DeploymentManager;
@@ -212,8 +208,10 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
     }
 
     public static void enableAnnotationsJspJNDI(WebAppContext webapp) {
+        System.out.println("=========== enableAnnotationsJspJNDI");
         webapp.setConfigurationClasses(new String[]{
             "org.eclipse.jetty.webapp.WebInfConfiguration",
+            WebNbAsyncConfig.class.getName(),            
             "org.eclipse.jetty.webapp.WebXmlConfiguration",
             "org.eclipse.jetty.webapp.MetaInfConfiguration",
             "org.eclipse.jetty.webapp.FragmentConfiguration",
@@ -303,15 +301,12 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
     /*    protected boolean isRuntimeDeploymentSupported() {
      return runtimeDeploymentSupported;
      }
-
      protected void setRuntimeDeploymentSupported(boolean runtimeDeploymentSupported) {
      this.runtimeDeploymentSupported = runtimeDeploymentSupported;
      }
-
      public String getRuntimeShutdownToken() {
      return runtimeShutdownToken;
      }
-
      public void setRuntimeShutdownToken(String runtimeShutdownToken) {
      this.runtimeShutdownToken = runtimeShutdownToken;
      }
@@ -458,7 +453,6 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
 
     /*protected Set<WebAppContext> findWebApps1() {
      Set<WebAppContext> map = new HashSet<>();
-
      Handler[] handlers = getServer().getChildHandlersByClass(WebAppContext.class);
      WebAppContext c = null;
      for (Handler ch : handlers) {
@@ -695,14 +689,11 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
     }
 
     /*    public void copyChangedClasses(WebAppContext webapp) throws IOException {
-
      if (!webapp.isCopyWebDir() || webapp.getTempDirectory() == null || webapp.getWebInf() == null || !webapp.getWebInf().exists()) {
      return;
      }
      File to = new File(webapp.getWebInf().getFile().getAbsoluteFile() + "/classes");
-
      File from = new File(webapp.getWar());
-
      from = new File(from.getParent() + "/classes");
      //        System.out.println("GCD: copyChangedClasses from=" + from.getAbsolutePath());
      //        System.out.println("GCD: copyChangedClasses to=" + to.getAbsolutePath());
@@ -728,12 +719,10 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
 
     /*    protected void printInfoBefore(String command) {
      Map<WebAppContext, ContextHandlerCollection> map = findWebApps();
-
      if (map.isEmpty()) {
      System.out.println(command + ": no handler found");
      return;
      }
-
      System.out.println("==========  Existing Handlers ==========");
      int i = 0;
      for (WebAppContext webapp : map.keySet()) {
@@ -741,16 +730,13 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
      }
      System.out.println("===================================");
      }
-
      protected void printInfoAfter(String command) {
      Map<WebAppContext, ContextHandlerCollection> map = findWebApps();
-
      if (map.isEmpty()) {
      System.out.println("==========  Command " + command + " Result  ==========");
      System.out.println(command + ": no handler found");
      return;
      }
-
      int i = 0;
      for (WebAppContext webapp : map.keySet()) {
      System.out.println((++i) + ". cp=" + webapp.getContextPath() + "; webDir=" + webapp.getWar());
@@ -1362,7 +1348,6 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
     }
 
     protected static void configCDI(Server server) {
-
         org.eclipse.jetty.webapp.Configuration.ClassList classlist
                 = org.eclipse.jetty.webapp.Configuration.ClassList
                 .setServerDefault(server);
@@ -1371,6 +1356,16 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
                 WebNbCdiConfig.class.getName()
         );
         addDeploymentManager(server);
+    }
+
+    protected static void configAsync(Server server) {
+        org.eclipse.jetty.webapp.Configuration.ClassList classlist
+                = org.eclipse.jetty.webapp.Configuration.ClassList
+                .setServerDefault(server);
+        classlist.addBefore(
+                "org.eclipse.jetty.webapp.WebXmlConfiguration",
+                WebNbAsyncConfig.class.getName()
+        );
     }
 
     public static void enableCDI(Server server) {
@@ -1555,6 +1550,8 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
         @Override
         public void lifeCycleStarting(LifeCycle lc) {
 
+            configAsync((Server) lc);
+
             if (deployer.isAnnotationsSupported()) {
                 System.out.println("*********** lifeCycleStarting isAnnotationsSupported");
                 configAnnotationsJspJndi((Server) lc);
@@ -1591,6 +1588,9 @@ public class NbDeployHandler extends AbstractHandler { //implements LifeCycle.Li
                     }
                 }
             }
+            //
+            // Find all explicitly defined objects of type WebAppContext
+            //
             Map<WebAppContext, ContextHandlerCollection> map = deployer.findWebApps();
             //
             // Scan all explicitly (hard coded) defined WebAppContexts 

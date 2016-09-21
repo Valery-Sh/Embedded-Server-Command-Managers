@@ -1,11 +1,20 @@
 package org.netbeans.plugin.support.embedded.prefs;
 
-import org.netbeans.plugin.support.embedded.jetty.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -20,7 +29,7 @@ public class InstancePreferences implements PreferencesProperties {
 
     private static final Logger LOG = Logger.getLogger(InstancePreferences.class.getName());
 
-    private Preferences prefs;
+    private final Preferences prefs;
 
     private final String id;
 
@@ -29,6 +38,34 @@ public class InstancePreferences implements PreferencesProperties {
         this.id = id;
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final InstancePreferences other = (InstancePreferences) obj;
+        if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        if (!Objects.equals(this.prefs, other.prefs)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public String[] keys() {
         try {
             return prefs.keys();
@@ -38,14 +75,17 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public Preferences getPreferences() {
         return prefs;
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     public boolean getBoolean(String key, boolean def) {
         synchronized (this) {
             if (prefs == null) {
@@ -55,6 +95,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public double getDouble(String key, double def) {
         synchronized (this) {
             if (prefs == null) {
@@ -64,6 +105,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public float getFloat(String key, float def) {
         synchronized (this) {
             if (prefs == null) {
@@ -73,6 +115,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public int getInt(String key, int def) {
         synchronized (this) {
             if (prefs == null) {
@@ -82,6 +125,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public long getLong(String key, long def) {
         synchronized (this) {
             if (prefs == null) {
@@ -91,6 +135,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public String getString(String key, String def) {
         synchronized (this) {
             if (prefs == null) {
@@ -100,6 +145,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public void putBoolean(String key, boolean value) {
         synchronized (this) {
             if (prefs == null) {
@@ -109,6 +155,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public void putDouble(String key, double value) {
         synchronized (this) {
             if (prefs == null) {
@@ -118,6 +165,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public void putFloat(String key, float value) {
         synchronized (this) {
             if (prefs == null) {
@@ -127,6 +175,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public void putInt(String key, int value) {
         synchronized (this) {
             if (prefs == null) {
@@ -136,6 +185,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public void putLong(String key, long value) {
         synchronized (this) {
             if (prefs == null) {
@@ -145,15 +195,18 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public InstancePreferences setProperty(String propName, String value) {
         this.putString(propName, value);
         return this;
     }
 
+    @Override
     public String getProperty(String propName) {
         return this.getString(propName, null);
     }
 
+    @Override
     public void putString(String key, String value) {
         synchronized (this) {
             if (prefs == null) {
@@ -161,6 +214,82 @@ public class InstancePreferences implements PreferencesProperties {
             }
             prefs.put(key, value);
         }
+    }
+
+    @Override
+    public byte[] getByteArray(String key, byte[] def) {
+        synchronized (this) {
+            if (prefs == null) {
+                throw new IllegalStateException("Properties are not valid anymore");
+            }
+            return prefs.getByteArray(key, def);
+        }
+    }
+
+    @Override
+    public void putByteArray(String key, byte[] value) {
+        synchronized (this) {
+            if (prefs == null) {
+                throw new IllegalStateException("Properties are not valid anymore");
+            }
+            prefs.putByteArray(key, value);
+        }
+    }
+
+    @Override
+    public void putFileAsString(String key, File value){
+        synchronized (this) {
+            if (prefs == null) {
+                throw new IllegalStateException("Properties are not valid anymore");
+            }
+            try (InputStream is = Files.newInputStream(value.toPath())) {
+                prefs.put(key, stringOf(is));
+            } catch (IOException ex) {
+               LOG.log(Level.INFO, null, ex);
+            }
+        }
+    }
+
+    @Override
+    public File getFileFromString(String key, Path filePath) {
+        File file =  null;
+        synchronized (this) {
+            if (prefs == null) {
+                throw new IllegalStateException("Properties are not valid anymore");
+            }
+            String str = prefs.get(key, "");
+            try {
+                InputStream is = new ByteArrayInputStream(str.getBytes());
+                Files.copy(is, filePath, StandardCopyOption.REPLACE_EXISTING);
+                file = filePath.toFile();
+            } catch (IOException ex) {
+               LOG.log(Level.INFO, null, ex);
+            }
+            return file;
+        }
+    }
+
+    public static String stringOf(InputStream is) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        String line;
+
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+        } catch (IOException ex) {
+            LOG.log(Level.INFO, ex.getMessage()); //NOI18N
+
+        } finally {
+            try {
+                is.close();
+            } catch (IOException ex) {
+                LOG.log(Level.INFO, ex.getMessage()); //NOI18N
+            }
+        }
+
+        return sb.toString();
     }
 
     @Override
@@ -173,6 +302,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public boolean remove() {
 
         boolean success = false;
@@ -193,6 +323,7 @@ public class InstancePreferences implements PreferencesProperties {
     //
     //
     //
+    @Override
     public Map<String, String> toMap() {
         synchronized (this) {
             if (prefs == null) {
@@ -205,6 +336,8 @@ public class InstancePreferences implements PreferencesProperties {
             return map;
         }
     }
+
+    @Override
     public Properties toProperties() {
         synchronized (this) {
             if (prefs == null) {
@@ -218,6 +351,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
     }
 
+    @Override
     public PreferencesProperties copyFrom(Properties props) {
         if (props == null || props.isEmpty()) {
             return this;
@@ -231,17 +365,18 @@ public class InstancePreferences implements PreferencesProperties {
         return this;
     }
 
-    public PreferencesProperties copyFrom(Map<String,String> props) {
+    @Override
+    public PreferencesProperties copyFrom(Map<String, String> props) {
         if (props == null || props.isEmpty()) {
             return this;
         }
-        props.forEach( (k,v) -> {
-            putString(k,v);
+        props.forEach((k, v) -> {
+            putString(k, v);
         });
-        
+
         return this;
     }
-    
+
     @Override
     public void clear() {
         try {
@@ -258,6 +393,7 @@ public class InstancePreferences implements PreferencesProperties {
 
     }
 
+    @Override
     public void removeKeys(Predicate<String> predicate) {
         for (String key : keys()) {
             if (predicate.test(key)) {
@@ -265,7 +401,8 @@ public class InstancePreferences implements PreferencesProperties {
             }
         }
     }
-
+    
+    @Override
     public void forEach(BiConsumer<String, String> action) {
         String[] keys = keys();
         for (String key : keys) {
@@ -273,6 +410,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
 
     }
+
     @Override
     public Map<String, String> filter(BiPredicate<String, String> predicate) {
         Map<String, String> map = new HashMap<>();
@@ -285,6 +423,7 @@ public class InstancePreferences implements PreferencesProperties {
         }
         return map;
     }
+
     @Override
     public Stream<String> keyStream() {
         List<String> list = Arrays.asList(keys());

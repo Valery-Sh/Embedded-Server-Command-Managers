@@ -27,50 +27,21 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
+    
     <dependencies>
+        
         <dependency>
             <groupId>eu.somatik.serviceloader-maven-plugin</groupId>
             <artifactId>serviceloader-maven-plugin</artifactId>
             <version>1.0.4</version>
+            <scope>compile</scope>
         </dependency>
-        
         <dependency>
-            <groupId>org.eclipse.jetty.aggregate</groupId>
-            <artifactId>jetty-all</artifactId>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-deploy</artifactId>
             <version>9.3.2.v20150730</version>
-            <!--classifier>uber</classifier-->
-            <type>pom</type>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!--       cdi.mod   -->
-        
-        <!--dependency>
-            <groupId>javax.enterprise</groupId>
-            <artifactId>cdi-api</artifactId>
-            <version>1.2</version>
-            <scope>provided</scope>
-
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty.cdi</groupId>
-            <artifactId>cdi-core</artifactId>
-            <version>9.3.2.v20150730</version>
-            <scope>provided</scope>
-            
-        </dependency>
-        
-        <dependency>
-            <groupId>org.eclipse.jetty.cdi</groupId>
-            <artifactId>cdi-servlet</artifactId>
-            <version>9.3.2.v20150730</version>
-            <scope>provided</scope>
-        </dependency-->
-        <dependency>
-            <groupId>org.eclipse.jetty.cdi</groupId>
-            <artifactId>cdi-servlet</artifactId>
-            <version>9.3.7.v20160115</version>
             <type>jar</type>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -91,7 +62,29 @@
         </repository>
     </distributionManagement>
     <build>
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+                <!--directory>src/main/config/etc</directory-->
+                <!--targetPath>org/eclipse/jetty/webapp</targetPath-->
+                <targetPath>org/netbeans/plugin/support/embedded/jetty</targetPath>                
+                <filtering>false</filtering>
+                <includes>
+                    <include>async-web.xml</include>
+                </includes>                
+            </resource>
+        </resources>        
+        <!--resources>
+            <resource>
+                <directory>${basedir}/src/main</directory>
+                <includes>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+        </resources-->
+        
         <plugins>
+            
             <!--plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>

@@ -25,7 +25,7 @@ public class PathResolver {
 
     protected static void warning(String msg) {
         System.err.println("______________________________________________________");
-        System.err.println("   WARNING: CommandManager (PathResolver): " + msg);
+        System.err.println("   WARNING: NbDeployHandler (PathResolver): " + msg);
         System.err.println("______________________________________________________");
     }
 

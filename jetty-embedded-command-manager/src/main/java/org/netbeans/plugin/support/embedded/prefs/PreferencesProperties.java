@@ -1,18 +1,20 @@
 package org.netbeans.plugin.support.embedded.prefs;
 
-import org.netbeans.plugin.support.embedded.jetty.*;
-import java.util.HashMap;
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
-import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.stream.Stream;
 
 public interface PreferencesProperties {
-
+    
+    public static String HIDDEN_KEY = "...HIDDEN...";
+    public static String HIDDEN_VALUE = "HIDDEN_VALUE";
+    
     String[] keys();
 
     public Preferences getPreferences();
@@ -30,7 +32,7 @@ public interface PreferencesProperties {
     long getLong(String key, long def);
 
     String getString(String key, String def);
-
+    
     void putBoolean(String key, boolean value);
     
     void putDouble(String key, double value);
@@ -46,6 +48,15 @@ public interface PreferencesProperties {
     String getProperty(String propName);
 
     void putString(String key, String value);
+    
+    byte[] getByteArray(String key, byte[] def);
+    
+    void putByteArray(String key, byte[] value);
+    
+    File getFileFromString(String key, Path filePath);
+    
+    void putFileAsString(String key, File value);
+    
     /**
      * Removes all of the preferences (<i>key-value associations</i>) in this 
      * preference node. 

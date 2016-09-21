@@ -1,11 +1,17 @@
 package org.netbeans.plugin.support.embedded.jetty;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
@@ -24,6 +30,26 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -106,7 +132,8 @@ public class Copier {
                 result = ps.toFile();
             }
         } catch (IOException ex) {
-            Logger.getLogger(Copier.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
+
         }
         return result;
     }
@@ -178,7 +205,7 @@ public class Copier {
             copy(srcFile, ps.toFile());
             result = ps.toFile();
         } catch (IOException ex) {
-            Logger.getLogger(Copier.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
         return result;
     }
@@ -206,7 +233,7 @@ public class Copier {
                 deleteDirs(srcFile.toPath());
             }
         } catch (IOException ex) {
-            Logger.getLogger(Copier.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
             result = false;
         }
         return result;
@@ -251,7 +278,7 @@ public class Copier {
                 deleteDirs(toDelete.toPath());
             }
         } catch (IOException ex) {
-            Logger.getLogger(Copier.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
             result = false;
         }
         return result;
@@ -276,7 +303,7 @@ public class Copier {
                 clearDir(srcFile.toPath());
             }
         } catch (IOException ex) {
-            Logger.getLogger(Copier.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
             result = false;
         }
         return result;
@@ -405,7 +432,7 @@ public class Copier {
             try (FileSystem zipfs = FileSystems.newFileSystem(uri, env)) {
                 return zipfs.getPath(zipFile.getPath());
             } catch (IOException ex) {
-                Logger.getLogger(ZipUtil.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 System.out.println("EXEPTION: " + ex.getMessage());
             }
             return null;
@@ -435,7 +462,7 @@ public class Copier {
                 return true;
 
             } catch (IOException ex) {
-                Logger.getLogger(ZipUtil.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 System.out.println("EXEPTION: " + ex.getMessage());
                 return false;
             }
@@ -564,11 +591,10 @@ public class Copier {
                 LOG.log(Level.INFO, ex.getMessage());
                 result = false;
             } catch (IOException ex) {
-                Logger.getLogger(ZipUtil.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 result = false;
             }
             return result;
-            //Files.copy(srcPath, targetPath, StandardCopyOption.REPLACE_EXISTING);
         }
 
         public static FileSystem getZipFileSystem(File zipFile) {
@@ -586,14 +612,14 @@ public class Copier {
                     r.close();
                 }
             } catch (Exception ex) {
-                //Logger.getLogger(ZipUtil.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 System.out.println("Copier.ZipUtil.getZipFileSystem(File) EXEPTION: " + ex.getMessage());
             }
 
             try {
                 r = FileSystems.newFileSystem(uri, env);
             } catch (IOException ex) {
-                Logger.getLogger(ZipUtil.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 System.out.println("EXEPTION: " + ex.getMessage());
             }
             return r;
@@ -645,7 +671,7 @@ public class Copier {
                 }
 
             } catch (IOException ex) {
-                Logger.getLogger(ZipUtil.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 System.out.println("EXEPTION: " + ex.getMessage());
                 result = false;
             }
@@ -667,7 +693,7 @@ public class Copier {
                 entryPath = zipfs.getPath(zipEntry);
                 copyFile(copier, zipfs, FileSystems.getDefault(), entryPath.toString(), targetFolder.getPath());
             } catch (IOException ex) {
-                Logger.getLogger(ZipUtil.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 System.out.println("EXEPTION: " + ex.getMessage());
                 result = false;
             }
@@ -697,7 +723,7 @@ public class Copier {
                 System.out.println("---------------");
                 //copyFile(copier, zipfs, FileSystems.getDefault(), entryPath.toString(), targetFolder.getPath());
             } catch (IOException ex) {
-                Logger.getLogger(ZipUtil.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 System.out.println("EXEPTION: " + ex.getMessage());
             }
             return set;
@@ -739,7 +765,7 @@ public class Copier {
                 }
                 //copyFile(copier, zipfs, FileSystems.getDefault(), entryPath.toString(), targetFolder.getPath());
             } catch (IOException ex) {
-                Logger.getLogger(ZipUtil.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 System.out.println("EXEPTION: " + ex.getMessage());
                 result = false;
             }
@@ -774,7 +800,7 @@ public class Copier {
                 try (InputStream is = ZipUtil.getZipEntryInputStream(null, zipfs, entryPath.toString());) {
                     result = stringOf(is);
                 } catch (IOException ex) {
-                    Logger.getLogger(Copier.class.getName()).log(Level.SEVERE, null, ex);
+                    LOG.log(Level.SEVERE, null, ex);
                 }
 
             }
@@ -808,7 +834,7 @@ public class Copier {
                 }
 //                copyFile(copier, zipfs, FileSystems.getDefault(), entryPath.toString(), targetFolder.getPath());
             } catch (IOException ex) {
-                Logger.getLogger(ZipUtil.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 System.out.println("EXEPTION: " + ex.getMessage());
                 result = null;
             }
@@ -872,6 +898,186 @@ public class Copier {
             return System.out;
         }
     }
+    /**
+     * Contains method that allows to transform document of type
+     * {@code org.w3c.dom.Document} in order to apply indentation to
+     * {@code xml} elements..
+     * 
+     */
+    public static class XML {
+        /**
+         * Transforms a given object of type {@code org.w3c.dom.Document }
+         * and saves it to the given output stream.
+         *
+         * @param document an object of type org.w3c.dom.Document to be
+         * transformed and saved.
+         * @param output an object of type java.io.OutputStream where the document
+         * should be saved.
+         * @param indent the value that is used to indent xml tags
+         */
+        public static void save(Document document, OutputStream output, int indent) {
+            try (Writer writer = new OutputStreamWriter(output);) {
+                getTransformer(document, indent).transform(new DOMSource(document), new StreamResult(writer));
+            } catch (TransformerException | IOException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+            }
+        }
 
+        /**
+         * Transforms a given object of type {@code org.w3c.dom.Document }
+         * and saves it to the given file.
+         *
+         * @param document an object of type org.w3c.dom.Document to be
+         * transformed and saved.
+         * @param output an object of type java.io.File where the document
+         * should be saved.
+         * @param indent the value that is used to indent xml tags
+         */
+        public static void save(Document document, File output, int indent) {
+
+            try (OutputStream os = Files.newOutputStream(output.toPath())) {
+                save(document, os, indent);
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+            }
+        }
+
+        /**
+         * Transforms a given object of type {@code org.w3c.dom.Document }
+         * and saves it to the file specified by the second parameter.
+         *
+         * @param document an object of type org.w3c.dom.Document to be
+         * transformed and saved.
+         * @param outputFile the path to the target file.
+         * @param indent the value that is used to indent xml tags
+         */
+        public static void save(Document document, String outputFile, int indent) {
+            save(document, new File(outputFile), indent);
+        }
+        /**
+         * Transforms a given object of type {@code org.w3c.dom.Document }
+         * and saves it to the file specified by the second parameter.
+         *
+         * @param document an object of type org.w3c.dom.Document to be
+         * transformed and saved.
+         * @param output the path to the target file.
+         * @param indent the value that is used to indent xml tags
+         */
+        public static void save(Document document, Path output, int indent) {
+            save(document, output.toFile(), indent);
+        }
+
+        /**
+         * Transforms a given {@code xml } file and and returns the result of
+         * transformation as a {@code  Strinng} value.
+         *
+         * @param xmlInput an object of type java.io.File which points to an xml
+         * file.
+         *
+         * @param indent the value that is used to indents xml tags
+         * @return the transformed xml trxt
+         */
+        public static String toString(File xmlInput, int indent) {
+            Writer writer = new StringWriter();
+            try {
+                Document doc = getDocument(xmlInput);
+                getTransformer(doc, indent).transform(new DOMSource(doc), new StreamResult(writer));
+            } catch (ParserConfigurationException | SAXException | TransformerException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+            }
+            return writer.toString();
+        }
+
+        /**
+         * Transforms a given string value and returns the result of
+         * transformation.
+         *
+         * @param xmlInput an XML text to be transformed
+         * @param indent the value that is used to indent xml tags
+         * @return the transformed xml text
+         *
+         * @throws IOException an exception when save
+         */
+        public static String toString(String xmlInput, int indent) throws IOException {
+            Writer writer = new StringWriter();
+            try {
+                Document doc = DocumentBuilderFactory.newInstance()
+                        .newDocumentBuilder()
+                        .parse(new InputSource(new ByteArrayInputStream(xmlInput.getBytes("utf-8"))));
+                getTransformer(doc, indent).transform(new DOMSource(doc), new StreamResult(writer));
+            } catch (ParserConfigurationException | SAXException | TransformerException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+            }
+            return writer.toString();
+        }
+        /**
+         * Creates and returns an object of type {@code Transformer}.
+         * Before creation of the result the method modifies a DOM Document
+         * that is specified by the parameter. It just removes DOM Nodes that
+         * represent spaces between tags.
+         * 
+         * 
+         * @param document the document to be modified
+         * @param indent the value that is used to indent xml tags
+         * @return an new instance of type Transformer
+         */
+        public static Transformer getTransformer(Document document, int indent) {
+            try {
+                //
+                // Trim strings
+                //
+                XPath xPath = XPathFactory.newInstance().newXPath();
+                NodeList nodeList = (NodeList) xPath.evaluate("//text()[normalize-space()='']",
+                        document,
+                        XPathConstants.NODESET);
+
+                for (int i = 0; i < nodeList.getLength(); ++i) {
+                    Node node = nodeList.item(i);
+                    node.getParentNode().removeChild(node);
+                }
+
+                TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                transformerFactory.setAttribute("indent-number", indent);
+                Transformer transformer = transformerFactory.newTransformer();
+                transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+                //transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+                return transformer;
+
+            } catch (XPathExpressionException | DOMException | TransformerConfigurationException | IllegalArgumentException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+            }
+            return null;
+        }
+        /**
+         * Create an instance of type {@code org.w3c.dom.Document} for the given file 
+         * and return it.as a result.
+         * 
+         * @param xmlFile the file that represents an xml document of type
+         *      org.w3c.dom.Document
+         * @return a new instance of type org.w3c.dom.Document
+         * 
+         * @throws ParserConfigurationException cannot parse
+         * @throws SAXException an exception when parse
+         */
+        public static Document getDocument(File xmlFile) throws ParserConfigurationException, SAXException {
+
+            Document doc = null;
+            try {
+                DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+                domFactory.setValidating(false);
+                domFactory.setIgnoringElementContentWhitespace(true);
+                domFactory.setCoalescing(true);
+                InputSource is = new InputSource(new FileReader(xmlFile));
+                DocumentBuilder builder = domFactory.newDocumentBuilder();
+                doc = builder.parse(xmlFile);
+            } catch (IOException | DOMException | ParserConfigurationException | SAXException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+            }
+            return doc;
+        }
+
+    }
 }//class
 
